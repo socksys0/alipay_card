@@ -216,7 +216,10 @@ $_FIELD = array(
 ---
 
 ## 技术支持
-<img src="MD/shang.jpg" width="400" height="400" alt="支持作者">
-如有问题，请联系作者：
+<img src="MD/shang.jpg" width="200" height="200" alt="支持作者">
+
+- 如有问题，请联系作者：
 - QQ: 147777010
 - 微信: socksys
+- https://www.bushux.cc
+- http://www.socksys.net
