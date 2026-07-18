@@ -7,3 +7,5 @@
 .env
 vendor/
 node_modules/
+笔记.txt
+MD/*
