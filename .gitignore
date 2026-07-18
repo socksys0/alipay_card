@@ -7,4 +7,3 @@
 .env
 vendor/
 node_modules/
-*.sql
