@@ -1,0 +1,10 @@
+.git/
+.DS_Store
+*.log
+*.tmp
+*.bak
+*.swp
+.env
+vendor/
+node_modules/
+*.sql
