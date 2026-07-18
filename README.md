@@ -216,7 +216,7 @@ $_FIELD = array(
 ---
 
 ## 技术支持
-![支持作者](MD/shang.jpg)
+<img src="MD/shang.jpg" width="400" height="400" alt="支持作者">
 如有问题，请联系作者：
 - QQ: 147777010
 - 微信: socksys
