@@ -1,7 +1,8 @@
 # 个人收款卡密管理系统 - 使用方法
 
 ## demo演示网站
-[https://pay.bushux.cc](https://pay.bushux.cc)
+- [https://pay.bushux.cc](https://pay.bushux.cc)前端收款页面
+- [https://pay.bushux.cc/admin](https://pay.bushux.cc/admin)后台管理页面
 
 ## 项目概述
 
