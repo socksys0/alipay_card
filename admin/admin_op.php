@@ -475,6 +475,107 @@ if (isset($_POST['action'])) {
             rejson(array('code' => 0, 'data' => $result));
             break;
         
+        // ========== 用户管理相关 ==========
+        
+        /**
+         * 获取用户列表（支持分页）
+         * 
+         * 请求参数：page（页码，默认1）, limit（每页条数，默认10）
+         * 返回数据：layui table格式（code, msg, count, data）
+         */
+        case 'get_users':
+            global $conn_pdo, $_TB, $_FIELD;
+            $page = isset($_POST['page']) ? (int)$_POST['page'] : 1;
+            $limit = isset($_POST['limit']) ? (int)$_POST['limit'] : 10;
+            $offset = ($page - 1) * $limit;
+            
+            $stmt = $conn_pdo->prepare("SELECT COUNT(*) as total FROM " . $_TB["info"]);
+            $stmt->execute();
+            $count = $stmt->fetchColumn();
+            
+            $sql = "SELECT id, " . $_FIELD["user"] . " as user, " . $_FIELD["mupdate"] . " as mupdate FROM " . $_TB["info"] . " ORDER BY id DESC LIMIT :offset, :limit";
+            $stmt = $conn_pdo->prepare($sql);
+            $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+            $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+            $stmt->execute();
+            $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            rejson(array('code' => 0, 'msg' => '', 'count' => $count, 'data' => $result));
+            break;
+        
+        /**
+         * 添加用户
+         * 
+         * 请求参数：user（用户账号）, mupdate（会员到期时间，可选）
+         * 返回结果：操作成功/失败提示
+         */
+        case 'add_user':
+            global $conn_pdo, $_TB, $_FIELD;
+            $user = $_POST['user'];
+            $mupdate = $_POST['mupdate'] ? str_replace('T', ' ', $_POST['mupdate']) : date('Y-m-d H:i:s');
+            
+            $stmt = $conn_pdo->prepare("SELECT COUNT(*) FROM " . $_TB["info"] . " WHERE " . $_FIELD["user"] . " = :user");
+            $stmt->execute(array(':user' => $user));
+            if ($stmt->fetchColumn() > 0) {
+                rejson(array('code' => -1, 'msg' => '该用户账号已存在'));
+            }
+            
+            $sql = "INSERT INTO " . $_TB["info"] . " (" . $_FIELD["user"] . ", " . $_FIELD["mupdate"] . ") VALUES (:user, :mupdate)";
+            $stmt = $conn_pdo->prepare($sql);
+            $stmt->execute(array(':user' => $user, ':mupdate' => $mupdate));
+            if ($stmt->rowCount() > 0) {
+                rejson(array('code' => 0, 'msg' => '添加成功'));
+            } else {
+                rejson(array('code' => -1, 'msg' => '添加失败'));
+            }
+            break;
+        
+        /**
+         * 编辑用户信息
+         * 
+         * 请求参数：id（用户ID）, user（用户账号）, mupdate（会员到期时间，可选）
+         * 返回结果：操作成功/失败提示
+         */
+        case 'edit_user':
+            global $conn_pdo, $_TB, $_FIELD;
+            $id = $_POST['id'];
+            $user = $_POST['user'];
+            $mupdate = $_POST['mupdate'] ? str_replace('T', ' ', $_POST['mupdate']) : null;
+            
+            $stmt = $conn_pdo->prepare("SELECT COUNT(*) FROM " . $_TB["info"] . " WHERE " . $_FIELD["user"] . " = :user AND id != :id");
+            $stmt->execute(array(':user' => $user, ':id' => $id));
+            if ($stmt->fetchColumn() > 0) {
+                rejson(array('code' => -1, 'msg' => '该用户账号已存在'));
+            }
+            
+            $sql = "UPDATE " . $_TB["info"] . " SET " . $_FIELD["user"] . " = :user, " . $_FIELD["mupdate"] . " = :mupdate WHERE id = :id";
+            $stmt = $conn_pdo->prepare($sql);
+            $stmt->execute(array(':id' => $id, ':user' => $user, ':mupdate' => $mupdate));
+            if ($stmt->rowCount() > 0) {
+                rejson(array('code' => 0, 'msg' => '修改成功'));
+            } else {
+                rejson(array('code' => -1, 'msg' => '修改失败'));
+            }
+            break;
+        
+        /**
+         * 删除用户
+         * 
+         * 请求参数：id（用户ID）
+         * 返回结果：操作成功/失败提示
+         */
+        case 'delete_user':
+            global $conn_pdo, $_TB;
+            $id = $_POST['id'];
+            $sql = "DELETE FROM " . $_TB["info"] . " WHERE id = :id";
+            $stmt = $conn_pdo->prepare($sql);
+            $stmt->execute(array(':id' => $id));
+            if ($stmt->rowCount() > 0) {
+                rejson(array('code' => 0, 'msg' => '删除成功'));
+            } else {
+                rejson(array('code' => -1, 'msg' => '删除失败'));
+            }
+            break;
+        
         // ========== 系统操作相关 ==========
         
         /**

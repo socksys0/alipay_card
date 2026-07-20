@@ -8,8 +8,7 @@
  * - 修改数据库信息时只需修改此文件
  */
 
-error_reporting(E_ALL ^ E_NOTICE);
-
+error_reporting(0);
 /**
  * 数据表名称映射
  * 

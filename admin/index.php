@@ -286,7 +286,7 @@ if (isset($_SESSION['admin_logged_in'])) {
     </div>
 
     <h1 class="title">欢迎回来，<em>请登录</em></h1>
-    <p class="subtitle">管理您的卡密系统，开启专属管理之旅。</p>
+    <p class="subtitle">管理您的卡密系统，开启专属收款之旅。</p>
 
     <form class="form" id="loginForm" novalidate>
       <div class="field">

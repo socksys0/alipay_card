@@ -83,6 +83,7 @@ $config_groups = array(
                     <div class="layui-tab">
                         <ul class="layui-tab-title">
                             <li class="layui-this" data-group="orders">订单管理</li>
+                            <li data-group="users">用户管理</li>
                             <li data-group="plans">套餐管理</li>
                             <li data-group="cards">卡密管理</li>
                             <li data-group="contact">联系方式</li>
@@ -92,6 +93,10 @@ $config_groups = array(
                         <div class="layui-tab-content">
                             <div class="layui-tab-item layui-show" id="tab-orders">
                                 <table class="layui-table" id="orders-table"></table>
+                            </div>
+                            <div class="layui-tab-item" id="tab-users">
+                                <button type="button" id="add-user-btn" class="layui-btn" style="margin-bottom: 15px;">添加用户</button>
+                                <table class="layui-table" id="users-table"></table>
                             </div>
                             <div class="layui-tab-item" id="tab-plans">
                                 <button type="button" id="add-plan-btn" class="layui-btn" style="margin-bottom: 15px;">添加套餐</button>
@@ -179,6 +184,24 @@ $config_groups = array(
             <label class="layui-form-label">排序</label>
             <div class="layui-input-block">
                 <input type="number" name="sort_order" lay-verify="number" value="0" class="layui-input">
+            </div>
+        </div>
+    </form>
+</div>
+
+<div id="user-modal" style="display: none;">
+    <form class="layui-form" lay-filter="user-form">
+        <input type="hidden" name="id">
+        <div class="layui-form-item">
+            <label class="layui-form-label">用户账号</label>
+            <div class="layui-input-block">
+                <input type="text" name="user" lay-verify="required" placeholder="请输入用户账号" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">会员到期时间</label>
+            <div class="layui-input-block">
+                <input type="datetime-local" name="mupdate" placeholder="请选择到期时间，为空表示永久" class="layui-input">
             </div>
         </div>
     </form>
@@ -340,15 +363,36 @@ layui.use(['jquery', 'form', 'table'], function() {
         ]]
     });
 
+    table.render({
+        elem: '#users-table',
+        url: 'admin_op.php',
+        where: {action: 'get_users'},
+        method: 'post',
+        page: true,
+        limit: 10,
+        cols: [[
+            {field: 'id', title: 'ID', width: 65, sort: true},
+            {field: 'user', title: '用户账号', width: 180, sort: true},
+            {field: 'mupdate', title: '会员到期时间', width: 180, sort: true, templet: function(d) {
+                return d.mupdate ? d.mupdate : '<span style="color:green;">永久</span>';
+            }},
+            {title: '操作', width: 180, templet: function(d) {
+                return '<button class="layui-btn layui-btn-xs" onclick="editUser(' + d.id + ')">编辑</button> <button class="layui-btn layui-btn-xs layui-btn-danger" onclick="deleteUser(' + d.id + ')">删除</button>';
+            }}
+        ]]
+    });
+
     $('.layui-tab-title li').click(function() {
         let group = $(this).data('group');
         if (group == 'plans') {
-            table.reload('plans-table');
-        } else if (group == 'cards') {
-            table.reload('cards-table');
-        } else if (group == 'orders') {
-            table.reload('orders-table');
-        } else {
+                table.reload('plans-table');
+            } else if (group == 'cards') {
+                table.reload('cards-table');
+            } else if (group == 'users') {
+                table.reload('users-table');
+            } else if (group == 'orders') {
+                table.reload('orders-table');
+            } else {
             loadConfigs(group);
         }
     });
@@ -520,6 +564,102 @@ layui.use(['jquery', 'form', 'table'], function() {
                 if (res.code == 0) {
                     layer.msg('删除成功', {icon: 1});
                     table.reload('cards-table');
+                } else {
+                    layer.msg(res.msg, {icon: 5});
+                }
+            });
+        });
+    }
+
+    $('#add-user-btn').click(function() {
+        $('form[lay-filter="user-form"]')[0].reset();
+        $('input[name="id"]').val('');
+        let now = new Date();
+        let year = now.getFullYear();
+        let month = String(now.getMonth() + 1).padStart(2, '0');
+        let day = String(now.getDate()).padStart(2, '0');
+        let hours = String(now.getHours()).padStart(2, '0');
+        let minutes = String(now.getMinutes()).padStart(2, '0');
+        let seconds = String(now.getSeconds()).padStart(2, '0');
+        $('input[name="mupdate"]').val(year + '-' + month + '-' + day + 'T' + hours + ':' + minutes + ':' + seconds);
+        form.render();
+        layer.open({
+            type: 1,
+            title: '添加用户',
+            area: ['420px', '320px'],
+            content: $('#user-modal'),
+            btn: ['保存', '取消'],
+            yes: function(index) {
+                form.verify();
+                let formData = $('form[lay-filter="user-form"]').serializeArray();
+                let data = {};
+                $.each(formData, function(i, item) {
+                    data[item.name] = item.value;
+                });
+                $.post('admin_op.php', {action: 'add_user', ...data}, function(res) {
+                    if (res.code == 0) {
+                        layer.close(index);
+                        layer.msg('添加成功', {icon: 1});
+                        table.reload('users-table');
+                    } else {
+                        layer.msg(res.msg, {icon: 5});
+                    }
+                });
+            }
+        });
+    });
+
+    window.editUser = function(id) {
+        $.post('admin_op.php', {action: 'get_users', page: 1, limit: 100}, function(data) {
+            if (data.code == 0) {
+                let user = null;
+                $.each(data.data, function(i, u) {
+                    if (u.id == id) {
+                        user = u;
+                        return false;
+                    }
+                });
+                if (user) {
+                    $('input[name="id"]').val(user.id);
+                    $('input[name="user"]').val(user.user);
+                    $('input[name="mupdate"]').val(user.mupdate || '');
+                    form.render();
+                    layer.open({
+                        type: 1,
+                        title: '编辑用户',
+                        area: ['420px', '320px'],
+                        content: $('#user-modal'),
+                        btn: ['保存', '取消'],
+                        yes: function(index) {
+                            form.verify();
+                            let formData = $('form[lay-filter="user-form"]').serializeArray();
+                            let data = {};
+                            $.each(formData, function(i, item) {
+                                data[item.name] = item.value;
+                            });
+                            $.post('admin_op.php', {action: 'edit_user', ...data}, function(res) {
+                                if (res.code == 0) {
+                                    layer.close(index);
+                                    layer.msg('修改成功', {icon: 1});
+                                    table.reload('users-table');
+                                } else {
+                                    layer.msg(res.msg, {icon: 5});
+                                }
+                            });
+                        }
+                    });
+                }
+            }
+        });
+    }
+
+    window.deleteUser = function(id) {
+        layer.confirm('确定删除该用户？', function(index) {
+            $.post('admin_op.php', {action: 'delete_user', id: id}, function(res) {
+                layer.close(index);
+                if (res.code == 0) {
+                    layer.msg('删除成功', {icon: 1});
+                    table.reload('users-table');
                 } else {
                     layer.msg(res.msg, {icon: 5});
                 }
