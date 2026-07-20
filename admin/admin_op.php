@@ -49,7 +49,7 @@ if (!isset($_SESSION['admin_logged_in'])) {
     if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['action'] == 'login') {
         $username = $_POST['username'];
         $password = $_POST['password'];
-        if ($username == $admin_config['username'] && password_verify($password, $admin_config['password'])) {
+        if ($username == $admin_config['username'] && $password == $admin_config['password']) {
             $_SESSION['admin_logged_in'] = true;
             rejson(array('code' => 0, 'msg' => '登录成功'));
         } else {
@@ -149,7 +149,7 @@ if (isset($_POST['action'])) {
                     if (empty($value)) {
                         unset($configs[$key]);
                     } else {
-                        $value = password_hash($value, PASSWORD_DEFAULT);
+                        $value = $value;
                     }
                 }
             }

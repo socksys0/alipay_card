@@ -28,6 +28,6 @@ INSERT INTO `system_config` (`config_key`, `config_value`, `config_group`, `conf
 
 ('api_key', 'socksys', 'system', 'API接口密钥', 'password', 1),
 ('admin_username', 'admin', 'system', '管理员账号', 'text', 2),
-('admin_password', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'system', '管理员密码', 'password', 3);
+('admin_password', 'admin', 'system', '管理员密码', 'password', 3);
 
 SET FOREIGN_KEY_CHECKS = 1;
